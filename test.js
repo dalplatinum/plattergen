@@ -28,6 +28,7 @@ window.onload = function() {
 			'arc',
 			'bubbles',
 			'solitaire',
+			'stickmove',
 			'bounce'
 		];
 		var randomNumber = Math.floor(Math.random()*textArray.length);
@@ -80,7 +81,16 @@ window.onload = function() {
 		if ((t /= d / 2) < 1) return c / 2 * (t * t * (((s *= (1.525)) + 1) * t - s)) + b;
 		return c / 2 * ((t -= 2) * t * (((s *= (1.525)) + 1) * t + s) + 2) + b;
 	}
-	
+	function easeInQuad (t, b, c, d) {
+		return c * (t /= d) * t + b;
+	}
+	function easeOutQuad (t, b, c, d) {
+		return -c * (t /= d) * (t - 2) + b;
+	}
+	function easeInOutQuad (t, b, c, d) {
+		if ((t /= d / 2) < 1) return c / 2 * t * t + b;
+		return -c / 2 * ((--t) * (t - 2) - 1) + b;
+	}
 	
 	// Set up object to contain particles and set some default values
 	var particles = {},
@@ -141,7 +151,19 @@ window.onload = function() {
 			settings.diefade = true;
 			settings.floorbounce = true;
 			settings.rotate = false;
-			settings.partLife = 220;
+			settings.partLife = 280;
+			break;
+		case "stickmove":
+			particleIndex = 40;
+			settings.diefade = false;
+			settings.floorbounce = false;
+			settings.startingX = canvas.width / 1.45;
+			settings.startingY = canvas.height * 0.23;
+			settings.rotate = false;
+			settings.partLife = 320;
+			settings.popIn = true;
+			settings.popOut = true;
+			settings.gravity = 0;
 			break;
 		case "bubbles":
 			settings.diefade = true;
@@ -207,6 +229,14 @@ window.onload = function() {
 			this.x = settings.startingX;
 			this.y = settings.startingY;
 		}
+		if (animStyle == 'stickmove') {
+			this.x = Math.random() * canvas.width;
+			this.y = Math.random() * canvas.height;
+			this.oldx = this.x;
+			this.oldy = this.y;
+			this.newx = 0;
+			this.newy = 0;
+		}
 		this.scale = settings.startingScale;
 		this.seed = Math.random(100);
 		//this.bounceFactor = (this.seed/100) * 0.6;
@@ -230,24 +260,45 @@ window.onload = function() {
 			this.opacity = 1;
 			this.grow = true;
 			this.maxLife = settings.partLife;
+			this.moveTime = 0;
+			this.moveTarget = 40;
 		}
 	}
 
 	// Some prototype methods for the particle's "draw" function
 	Particle.prototype.draw = function() {
-		if (settings.weaveX) {
-			this.x += Math.sin((this.life+this.seed-this.vy)/8);
+		if (animStyle == 'stickmove') {
+				if (this.moveTime <= this.moveTarget) {
+					this.x = easeInQuad(this.moveTime,this.oldx,this.newx,this.moveTarget);
+					this.y = easeOutQuad(this.moveTime,this.oldy,this.newy,this.moveTarget);
+				}
+				this.moveTime ++;
+			if (this.moveTime >= this.moveTarget+40) {
+				this.moveTime = 0;
+				this.oldx = this.x;
+				this.oldy = this.y;
+				this.newx = (Math.random() * canvas.width) - this.oldx;
+				this.newy = (Math.random() * canvas.height) - this.oldy;
+			}
 		} else {
-			this.x += this.vx;
-		}
-		this.y += this.vy;
-		this.r += this.vr;
+			// Add velocities to x, y and rotation
+			if (settings.weaveX) {
+				// This will make the particle weave side to side
+				this.x += Math.sin((this.id+this.life+this.seed-this.vy)/12)*3;
+			} else {
+				this.x += this.vx;
+			}
+			this.y += this.vy;
+			this.r += this.vr;
+		}	
 		
+		// This will scale up the particle on creation.  looks nice.
 		if (settings.popIn) {
 			if (this.life < 15) {
 				this.scale = easeOutBack(this.life,settings.startingScale,settings.maxScale-settings.startingScale,15);
 			}
 		} else {
+			// This will grow the particle every frame until it hits the max scale.  when it hits max, growth is turned off
 			if (this.grow) {
 				if (this.scale < settings.maxScale) {
 					this.scale += settings.growspeed;
@@ -307,6 +358,8 @@ window.onload = function() {
 
 		// draw the image
 		context.clearRect(settings.leftWall, settings.groundLevel, canvas.width, canvas.height);
+		// rotating stuff in canvas is weird, you have to move the 0,0 of the canvas to the centre of the
+		// object, rotate the canvas to the required angle, draw the whatever, the reset the canvas position/rotation back to normal
 		if (settings.rotate) {
 			context.save();
 			context.translate(this.x, this.y);
@@ -322,6 +375,7 @@ window.onload = function() {
 		};
 	}
 	
+	// This is the main loop.  It has gotten a little messy but it works.
 	function goLoop() {
 		if (settings.noClear) {
 			context.fillStyle = `rgba(0,255,0,${settings.fadeSpeed})`;
@@ -338,12 +392,14 @@ window.onload = function() {
 			}
 		}
 		
+		// We count the number of particles is each loop so we can tell when they're all gone.
 		var numPart = 0;
 		for (var i in particles) {
 			particles[i].draw();
 			numPart ++;
 		}
 		
+		// When the number of particles counted above hits, zero, we either face the canvas out or just stop the loop
 		if (numPart == 0 && settings.noClear && settings.hasStarted) {
 			console.log('turn off');
 			settings.noClear = false;
