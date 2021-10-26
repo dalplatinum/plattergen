@@ -15,6 +15,7 @@
 // make the code more efficient
 // 	put some sort of debug counter on the screen that counts operations or something
 // 	might want to put each 'style' into it's own particle type?  would reduce the amount of 'ifs'
+// character limit lol
 
 window.onload = function() {
 	
@@ -110,17 +111,12 @@ window.onload = function() {
 			startingY: canvas.height * 1.1,
 			gravity: 0.5,
 			startingScale: 0.2,
-			maxScale: 1.5,
+			maxScale: 1.3,
 			growspeed: 0.01,
 			trails: false,
 			clear: true,
-			diefade: true,
 			dieDelay: 10,
-			floorbounce: false,
 			rotate: false,
-			weaveX: false,
-			popIn: false,
-			popOut: false,
 			noClear: false,
 			fadeSpeed: 1,
 			partLife: 200,
@@ -175,6 +171,7 @@ window.onload = function() {
 			break;
 		case "bubbles":
 			particleIndex = 50;
+			settings.density = 7;
 			settings.diefade = true;
 			settings.floorbounce = false;
 			settings.rotate = true;
@@ -194,11 +191,11 @@ window.onload = function() {
 			break;
 		case "arc":
 			particleIndex = 50;
-			settings.density = 12;
+			settings.density = 6;
 			settings.diefade = true;
 			settings.floorbounce = true;
 			settings.rotate = true;
-			settings.partLife = 220;
+			settings.partLife = 290;
 			settings.startingX = canvas.width / 1.02;
 			settings.startingScale = 0.2;
 			settings.growspeed = 0.005;
@@ -268,121 +265,305 @@ window.onload = function() {
 			this.id = particleIndex;
 			this.life = 0;
 			this.opacity = 1;
-			this.grow = true;
 			this.maxLife = settings.partLife;
 			this.moveTime = 0;
-			this.moveTarget = 40;
+			this.moveTarget = (Math.random() * 20) + 40;
+			this.seed = Math.random();
 		}
 	}
 
-	// Some prototype methods for the particle's "draw" function
 	Particle.prototype.draw = function() {
-		if (animStyle == 'stickmove') {
-				if (this.moveTime <= this.moveTarget) {
-					this.x = easeInQuad(this.moveTime,this.oldx,this.newx,this.moveTarget);
-					this.y = easeOutQuad(this.moveTime,this.oldy,this.newy,this.moveTarget);
-				}
-				this.moveTime ++;
-			if (this.moveTime >= this.moveTarget+40) {
-				this.moveTime = 0;
-				this.oldx = this.x;
-				this.oldy = this.y;
-				this.newx = (Math.random() * canvas.width) - this.oldx;
-				this.newy = (Math.random() * canvas.height) - this.oldy;
-			}
-		} else {
-			// Add velocities to x, y and rotation
-			if (settings.weaveX) {
-				// This will make the particle weave side to side
-				this.x += Math.sin((this.id+this.life+this.seed-this.vy)/12)*3;
-			} else {
+		switch(animStyle) {
+			case "vanilla":
+				// //////////////////////////////////////////////////////////////////////////////////////////// VANILLA
 				this.x += this.vx;
-			}
-			this.y += this.vy;
-			this.r += this.vr;
-		}	
-		
-		// This will scale up the particle on creation.  looks nice.
-		if (settings.popIn) {
-			if (this.life < 15) {
-				this.scale = easeOutBack(this.life,settings.startingScale,settings.maxScale-settings.startingScale,15);
-			}
-		} else {
-			// This will grow the particle every frame until it hits the max scale.  when it hits max, growth is turned off
-			if (this.grow) {
+				this.y += this.vy;
+				this.r += this.vr;
+				
+				if (this.scale < settings.maxScale) {
+					this.scale += settings.growspeed;
+				}
+				// If Particle is old, it gets processed.  To death.
+				if (this.life > this.maxLife) {
+					delete particles[this.id];
+				}
+				// Adjust for gravity
+				this.vy += settings.gravity;
+				// Set up the new width based on scale
+				this.newwidth = img.width * this.scale;
+				this.newheight = img.height * this.scale;
+				// draw the image
+				context.clearRect(settings.leftWall, settings.groundLevel, canvas.width, canvas.height);
+				// rotating stuff in canvas is weird, you have to move the 0,0 of the canvas to the centre of the
+				// object, rotate the canvas to the required angle, draw the whatever, the reset the canvas position/rotation back to normal
+				context.save();
+				context.translate(this.x, this.y);
+				context.rotate(this.r * Math.PI / 180);
+				context.globalAlpha = this.opacity;
+				context.drawImage(img, -(this.newwidth / 2), -(this.newheight / 2),this.newwidth,this.newheight);
+				context.restore();
+				// //////////////////////////////////////////////////////////////////////////////////////////// END VANILLA
+				break;
+			case "solitaire":
+				// //////////////////////////////////////////////////////////////////////////////////////////// SOLITAIRE
+				this.x += this.vx;
+				this.y += this.vy;
+				this.r += this.vr;
+				
+				if (this.scale < settings.maxScale) {
+					this.scale += settings.growspeed;
+				}
+				// If Particle is old, it gets processed.  To death.
+				if (this.life > this.maxLife) {
+					this.opacity -= 0.1;
+					if (this.opacity <= 0) {
+						delete particles[this.id];
+						return;
+					}
+				}
+				// Make it bounce
+				if (this.y+(this.newheight / 2) > canvas.height*1.02 && this.life > 10) {
+					this.y = (canvas.height*1.02)-(this.newheight / 2);
+					this.vy *= -this.bounceFactor;
+					this.vx *= 0.8;
+					this.grow = false;
+				}
+				// Adjust for gravity
+				this.vy += settings.gravity;
+				// work out the new image size now, saves on an extra calculation or two later
+				this.newwidth = img.width * this.scale;
+				this.newheight = img.height * this.scale;
+				// draw the image
+				context.clearRect(settings.leftWall, settings.groundLevel, canvas.width, canvas.height);
+				context.save();
+				context.globalAlpha = this.opacity;
+				context.drawImage(img, this.x-(this.newwidth / 2), this.y-(this.newheight / 2),this.newwidth,this.newheight);
+				context.restore();
+				// //////////////////////////////////////////////////////////////////////////////////////////// END SOLITAIRE
+				break;
+			case "bounce":
+				// //////////////////////////////////////////////////////////////////////////////////////////// BOUNCE
+				this.x += this.vx;
+				this.y += this.vy;
+				this.r += this.vr;
+				
 				if (this.scale < settings.maxScale) {
 					this.scale += settings.growspeed;
 				} else {
 					this.grow = false;
 				}
-			}
-		}
-		
-		// If Particle is old, it gets processed.  To death.
-		if (this.life > this.maxLife) {
-			if (settings.popOut) {
-				// This pops it out and then removes it
-				this.tempLife = this.life - this.maxLife;
-				if (this.tempLife < 16) {
-					this.scale = easeInBack(this.tempLife,settings.maxScale,-settings.maxScale+settings.startingScale,15);
+				// If Particle is old, it gets processed.  To death.
+				if (this.life > this.maxLife) {
+					this.opacity -= 0.1;
+					if (this.opacity <= 0) {
+						delete particles[this.id];
+						return;
+					}
+				}
+				// Make it bounce
+				if (this.y+(this.newheight / 2) > canvas.height*1.05 && this.life > 60) {
+					this.y = (canvas.height*1.05)-(this.newheight / 2);
+					this.vy *= -this.bounceFactor;
+					this.vx *= 0.8;
+					this.grow = false;
+				}
+				// Adjust for gravity
+				this.vy += settings.gravity;
+				// work out the new image size now, saves on an extra calculation or two later
+				this.newwidth = img.width * this.scale;
+				this.newheight = img.height * this.scale;
+				// draw the image
+				context.clearRect(settings.leftWall, settings.groundLevel, canvas.width, canvas.height);
+				context.save();
+				context.globalAlpha = this.opacity;
+				context.drawImage(img, this.x-(this.newwidth / 2), this.y-(this.newheight / 2),this.newwidth,this.newheight);
+				context.restore();
+				// //////////////////////////////////////////////////////////////////////////////////////////// END BOUNCE
+				break;
+			case "stickmove":
+				// //////////////////////////////////////////////////////////////////////////////////////////// STICKMOVE
+				if (this.moveTime <= this.moveTarget) {
+					this.x = easeInQuad(this.moveTime,this.oldx,this.newx,this.moveTarget);
+					this.y = easeOutQuad(this.moveTime,this.oldy,this.newy,this.moveTarget);
+				}
+				this.moveTime ++;
+				if (this.moveTime >= this.moveTarget+20) {
+					this.moveTime = 0;
+					this.oldx = this.x;
+					this.oldy = this.y;
+					this.newx = (Math.random() * canvas.width) - this.oldx;
+					this.newy = (Math.random() * canvas.height) - this.oldy;
+				}
+				// Pop the particles in
+				if (this.life < 15) {
+					this.scale = easeOutBack(this.life,settings.startingScale,settings.maxScale-settings.startingScale,15);
+				}
+				// If Particle is old, it gets processed.  To death.
+				if (this.life > this.maxLife) {
+					// This pops it out and then removes it
+					this.tempLife = this.life - this.maxLife;
+					if (this.tempLife < 16) {
+						this.scale = easeInBack(this.tempLife,settings.maxScale,-settings.maxScale+settings.startingScale,15);
+					} else {
+						delete particles[this.id];
+					}
+				}
+				// work out the new image size now, saves on an extra calculation or two later
+				this.newwidth = img.width * this.scale;
+				this.newheight = img.height * this.scale;
+				// draw the image
+				context.clearRect(settings.leftWall, settings.groundLevel, canvas.width, canvas.height);
+				context.save();
+				context.globalAlpha = this.opacity;
+				context.drawImage(img, this.x-(this.newwidth / 2), this.y-(this.newheight / 2),this.newwidth,this.newheight);
+				context.restore();
+				break;
+				// //////////////////////////////////////////////////////////////////////////////////////////// END STICKMOVE
+			case "bubbles":
+				// //////////////////////////////////////////////////////////////////////////////////////////// BUBBLES
+				this.x += Math.sin((this.id+this.life+this.seed-this.vy)/12)*3;
+				this.y += this.vy;
+				this.r += this.vr;
+				
+				if (this.life < 15) {
+					this.scale = easeOutBack(this.life,settings.startingScale,settings.maxScale-settings.startingScale,15);
+				}
+				
+				// If Particle is old, it gets processed.  To death.
+				if (this.life > this.maxLife) {
+					// This pops it out and then removes it
+					this.tempLife = this.life - this.maxLife;
+					if (this.tempLife < 16) {
+						this.scale = easeInBack(this.tempLife,settings.maxScale,-settings.maxScale+settings.startingScale,15);
+					} else {
+						delete particles[this.id];
+					}
+				}
+				// Adjust for gravity
+				this.vy += settings.gravity;
+				// Set up the new width based on scale
+				this.newwidth = img.width * this.scale;
+				this.newheight = img.height * this.scale;
+				// draw the image
+				context.clearRect(settings.leftWall, settings.groundLevel, canvas.width, canvas.height);
+				// rotating stuff in canvas is weird, you have to move the 0,0 of the canvas to the centre of the
+				// object, rotate the canvas to the required angle, draw the whatever, the reset the canvas position/rotation back to normal
+				context.save();
+				context.translate(this.x, this.y);
+				context.rotate(this.r * Math.PI / 180);
+				context.globalAlpha = this.opacity;
+				context.drawImage(img, -(this.newwidth / 2), -(this.newheight / 2),this.newwidth,this.newheight);
+				context.restore();
+				// //////////////////////////////////////////////////////////////////////////////////////////// END BUBBLES
+				break;
+			case "arc":
+				// //////////////////////////////////////////////////////////////////////////////////////////// ARC
+				this.x += this.vx;
+				this.y += this.vy;
+				this.r += this.vr+this.seed;
+				
+				if (this.scale < settings.maxScale) {
+					this.scale += settings.growspeed;
+				}
+				// If Particle is old, it gets processed.  To death.
+				if (this.life > this.maxLife) {
+					this.opacity -= 0.1;
+					if (this.opacity <= 0) {
+						delete particles[this.id];
+						return;
+					}
+				}
+				// Make it bounce
+				if (this.y+(this.newheight / 2) > canvas.height*1.02 && this.life > 60) {
+					this.y = (canvas.height*1.02)-(this.newheight / 2);
+					this.vy *= -this.bounceFactor;
+					this.vx *= 0.8;
+					this.grow = false;
+				}
+				// Adjust for gravity
+				this.vy += settings.gravity;
+				// Set up the new width based on scale
+				this.newwidth = img.width * this.scale;
+				this.newheight = img.height * this.scale;
+				// draw the image
+				context.clearRect(settings.leftWall, settings.groundLevel, canvas.width, canvas.height);
+				// rotating stuff in canvas is weird, you have to move the 0,0 of the canvas to the centre of the
+				// object, rotate the canvas to the required angle, draw the whatever, the reset the canvas position/rotation back to normal
+				context.save();
+				context.translate(this.x, this.y);
+				context.rotate(this.r * Math.PI / 180);
+				context.globalAlpha = this.opacity;
+				context.drawImage(img, -(this.newwidth / 2), -(this.newheight / 2),this.newwidth,this.newheight);
+				context.restore();
+				// //////////////////////////////////////////////////////////////////////////////////////////// END ARC
+				break;
+			case "vomit":
+				// //////////////////////////////////////////////////////////////////////////////////////////// VOMIT
+				this.x += this.vx;
+				this.y += this.vy;
+				this.r += this.vr;
+				
+				if (this.scale < settings.maxScale) {
+					this.scale += settings.growspeed;
 				} else {
+					this.grow = false;
+				}
+				// if it's offscreen kill it.
+				if (this.y-(this.newheight / 2) > canvas.height * 1.5 && this.life > 60) {
 					delete particles[this.id];
 				}
-			} else if (settings.diefade) {
-				// This will fade it out and dump it when it's faded out
-				this.opacity -= 0.1;
-				if (this.opacity <= 0) {
-					delete particles[this.id];
-					return;
+				// Adjust for gravity
+				this.vy += settings.gravity;
+				// Set up the new width based on scale
+				this.newwidth = img.width * this.scale;
+				this.newheight = img.height * this.scale;
+				// draw the image
+				context.clearRect(settings.leftWall, settings.groundLevel, canvas.width, canvas.height);
+				// rotating stuff in canvas is weird, you have to move the 0,0 of the canvas to the centre of the
+				// object, rotate the canvas to the required angle, draw the whatever, the reset the canvas position/rotation back to normal
+				context.save();
+				context.translate(this.x, this.y);
+				context.rotate(this.r * Math.PI / 180);
+				context.globalAlpha = this.opacity;
+				context.drawImage(img, -(this.newwidth / 2), -(this.newheight / 2),this.newwidth,this.newheight);
+				context.restore();
+				// //////////////////////////////////////////////////////////////////////////////////////////// END VOMIT
+				break;
+			default:
+				// //////////////////////////////////////////////////////////////////////////////////////////// DEFAULT
+				this.x += this.vx;
+				this.y += this.vy;
+				this.r += this.vr;
+				
+				if (this.scale < settings.maxScale) {
+					this.scale += settings.growspeed;
+				} else {
+					this.grow = false;
 				}
-			} else {
-				delete particles[this.id];
-			}
+				// If Particle is old, it gets processed.  To death.
+				if (this.life > this.maxLife) {
+					delete particles[this.id];
+				}
+				// Adjust for gravity
+				this.vy += settings.gravity;
+				// Set up the new width based on scale
+				this.newwidth = img.width * this.scale;
+				this.newheight = img.height * this.scale;
+				// draw the image
+				context.clearRect(settings.leftWall, settings.groundLevel, canvas.width, canvas.height);
+				// rotating stuff in canvas is weird, you have to move the 0,0 of the canvas to the centre of the
+				// object, rotate the canvas to the required angle, draw the whatever, the reset the canvas position/rotation back to normal
+				context.save();
+				context.translate(this.x, this.y);
+				context.rotate(this.r * Math.PI / 180);
+				context.globalAlpha = this.opacity;
+				context.drawImage(img, -(this.newwidth / 2), -(this.newheight / 2),this.newwidth,this.newheight);
+				context.restore();
+				// //////////////////////////////////////////////////////////////////////////////////////////// END DEFAULT
+				break;
 		}
-		
 		// Age the particle
 		this.life++;
-		
-		// work out the new image size now, saves on an extra calculation or two later
-		this.newwidth = img.width * this.scale;
-		this.newheight = img.height * this.scale;
-		
-		if (settings.floorbounce) {
-			// flip y velocity and move the image back up to floor level
-			if (this.y+(this.newheight / 2) > canvas.height*1.05 && this.life > 60) {
-				this.y = (canvas.height*1.05)-(this.newheight / 2);
-				this.vy *= -this.bounceFactor;
-				this.vx *= 0.8;
-				this.grow = false;
-			}
-			// Adjust for gravity
-			this.vy += settings.gravity;
-		} else {
-			// if it's offscreen kill it.
-			if (this.y-(this.newheight / 2) > canvas.height * 2 && this.life > 60) {
-				delete particles[this.id];
-			}
-			// Adjust for gravity
-			this.vy += settings.gravity;
-		}
-
-		// draw the image
-		context.clearRect(settings.leftWall, settings.groundLevel, canvas.width, canvas.height);
-		// rotating stuff in canvas is weird, you have to move the 0,0 of the canvas to the centre of the
-		// object, rotate the canvas to the required angle, draw the whatever, the reset the canvas position/rotation back to normal
-		if (settings.rotate) {
-			context.save();
-			context.translate(this.x, this.y);
-			context.rotate(this.r * Math.PI / 180);
-			context.globalAlpha = this.opacity;
-			context.drawImage(img, -(this.newwidth / 2), -(this.newheight / 2),this.newwidth,this.newheight);
-			context.restore();
-		} else {
-			context.save();
-			context.globalAlpha = this.opacity;
-			context.drawImage(img, this.x-(this.newwidth / 2), this.y-(this.newheight / 2),this.newwidth,this.newheight);
-			context.restore();
-		};
 	}
 	
 	// This is the main loop.  It has gotten a little messy but it works.
@@ -394,7 +575,7 @@ window.onload = function() {
 			canvas.width = canvas.width;
 		}
 		
-		// Draw the particles
+		// Add new particles
 		for (var i = 0; i < settings.density; i++) {
 			if (Math.random() > 0.97) {
 				new Particle();
