@@ -69,12 +69,12 @@ window.onload = function() {
 	var canvas = document.createElement("canvas");
 	var context = canvas.getContext("2d");
 	context.fillstyle = "rgba(0, 0, 200, 0.5)";
-	canvas.width = screen.width;
-	canvas.height = screen.height;
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
 	//context.clearRect(0, 0, canvas.width, canvas.height)
 	document.body.appendChild(canvas);
-	
-	
+	var hfactor = (window.innerHeight / 1080);
+	console.log(hfactor);
 	// Some easing functions
 	function easeInBack (t, b, c, d) {
 		var s = 1.70158;
@@ -123,7 +123,7 @@ window.onload = function() {
 			initvxrnd: 16,
 			initvx: 8,
 			initvyrnd: 4,
-			initvy: 33,
+			initvy: 33*hfactor,
 			initr: 0,
 			initvrrnd: 0,
 			initvr: 0
@@ -144,7 +144,7 @@ window.onload = function() {
 			settings.initvxrnd = -15;
 			settings.initvx = 3;
 			settings.initvyrnd = 3;
-			settings.initvy = 2;
+			settings.initvy = 2*hfactor;
 			settings.startingScale = 1;
 			settings.gravity = 0.7;
 			settings.noClear = true;
@@ -184,7 +184,7 @@ window.onload = function() {
 			settings.maxScale = 0.8;
 			settings.growspeed = 0.06;
 			settings.initvyrnd = 1;
-			settings.initvy = 1;
+			settings.initvy = 1*hfactor;
 			settings.partLife = 190;
 			settings.popIn = true;
 			settings.popOut = true;
@@ -202,7 +202,7 @@ window.onload = function() {
 			settings.initvxrnd = 1;
 			settings.initvx = 9;
 			settings.initvyrnd = 1;
-			settings.initvy = 33;
+			settings.initvy = 33*hfactor;
 			settings.initr = 98;
 			break;
 		case "vomit":
@@ -217,7 +217,7 @@ window.onload = function() {
 			settings.initvxrnd = 8;
 			settings.initvx = -2;
 			settings.initvyrnd = 5;
-			settings.initvy = 4;
+			settings.initvy = 4*hfactor;
 			settings.initryrnd = 17;
 			settings.initvr = 0;
 			break;
