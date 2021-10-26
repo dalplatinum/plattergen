@@ -164,7 +164,7 @@ window.onload = function() {
 			settings.startingX = canvas.width / 1.45;
 			settings.startingY = canvas.height * 0.23;
 			settings.rotate = false;
-			settings.partLife = 320;
+			settings.partLife = 325;
 			settings.popIn = true;
 			settings.popOut = true;
 			settings.gravity = 0;
@@ -402,8 +402,8 @@ window.onload = function() {
 				if (this.life > this.maxLife) {
 					// This pops it out and then removes it
 					this.tempLife = this.life - this.maxLife;
-					if (this.tempLife < 16) {
-						this.scale = easeInBack(this.tempLife,settings.maxScale,-settings.maxScale+settings.startingScale,15);
+					if (this.tempLife < 15) {
+						this.scale = easeInBack(this.tempLife,settings.maxScale,-settings.maxScale,15);
 					} else {
 						delete particles[this.id];
 					}
@@ -433,7 +433,7 @@ window.onload = function() {
 				if (this.life > this.maxLife) {
 					// This pops it out and then removes it
 					this.tempLife = this.life - this.maxLife;
-					if (this.tempLife < 16) {
+					if (this.tempLife < 15) {
 						this.scale = easeInBack(this.tempLife,settings.maxScale,-settings.maxScale+settings.startingScale,15);
 					} else {
 						delete particles[this.id];
@@ -585,17 +585,19 @@ window.onload = function() {
 		
 		// We count the number of particles is each loop so we can tell when they're all gone.
 		var numPart = 0;
+		// Draw each particle
 		for (var i in particles) {
 			particles[i].draw();
 			numPart ++;
 		}
-		
 		// When the number of particles counted above hits, zero, we either face the canvas out or just stop the loop
 		if (numPart == 0 && settings.noClear && settings.hasStarted) {
 			console.log('turn off');
 			settings.noClear = false;
+			canvas.width = canvas.width;
 		} else if (numPart == 0 && !settings.noClear && settings.hasStarted) {
 			console.log('bye');
+			canvas.width = canvas.width;
 			clearInterval(workIt);
 		}
 	}
