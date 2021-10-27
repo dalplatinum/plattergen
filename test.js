@@ -393,10 +393,10 @@ window.onload = function() {
 					settings.startingScale = 0.1;
 					settings.maxScale = 3.8;
 					settings.gravity = 0.7;
-					settings.growspeed = 0.01;
+					settings.growspeed = 0.02;
 					particleIndex = 30;
 					for (var i = 0; i < 30; i++) {
-						settings.initvx = Math.random() * 12;
+						settings.initvx = (Math.random() * 40)-17;
 						settings.initvy = (Math.random() * 8) + 7;
 						settings.partLife = (Math.random() * 40) + 90;
 						settings.bounceFactor = (Math.random() * 0.3) + 0.6;
@@ -445,6 +445,7 @@ window.onload = function() {
 				}
 				// Adjust for gravity
 				this.vy += settings.gravity;
+				this.vx *= 0.97;
 				// work out the new image size now, saves on an extra calculation or two later
 				this.newwidth = img.width * this.scale;
 				this.newheight = img.height * this.scale;
