@@ -123,7 +123,7 @@ window.onload = function() {
 			initvxrnd: 16,
 			initvx: 8,
 			initvyrnd: 4,
-			initvy: 43*hfactor,
+			initvy: 35*hfactor,
 			initr: 0,
 			initvrrnd: 0,
 			initvr: 0,
