@@ -290,6 +290,7 @@ window.onload = function() {
 			this.moveTime = 0;
 			this.moveTarget = (Math.random() * 20) + 40;
 			this.seed = Math.random();
+			this.i = 0;
 		}
 		particleIndex --;
 	}
@@ -546,22 +547,25 @@ window.onload = function() {
 				if (this.life < 15) {
 					this.scale = easeOutBack(this.life,settings.startingScale,settings.maxScale-settings.startingScale,15);
 				}
-				
-				// If Particle is old, it gets processed.  To death.
-				if (this.life > this.maxLife) {
-					// This pops it out and then removes it
-					this.tempLife = this.life - this.maxLife;
-					if (this.tempLife < 15) {
-						this.scale = easeInBack(this.tempLife,settings.maxScale,-settings.maxScale+settings.startingScale,15);
-					} else {
-						delete particles[this.id];
-					}
-				}
+
 				// Adjust for gravity
-				this.vy += settings.gravity;
+				this.vy += -0.1 -(settings.gravity * this.seed);
 				// Set up the new width based on scale
 				this.newwidth = img.width * this.scale;
 				this.newheight = img.height * this.scale;
+				
+				// If Particle is old, it gets processed.  To death.
+				// if it's offscreen kill it.
+				if (this.y < canvas.height * 0.26) {
+					// This pops it out and then removes it
+					if (this.i < 15) {
+						this.scale = easeInBack(this.i,settings.maxScale,-settings.maxScale,15);
+					} else {
+						delete particles[this.id];
+					}
+					this.i ++;
+				}
+				
 				// draw the image
 				context.clearRect(settings.leftWall, settings.groundLevel, canvas.width, canvas.height);
 				// rotating stuff in canvas is weird, you have to move the 0,0 of the canvas to the centre of the
