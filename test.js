@@ -102,7 +102,7 @@ window.onload = function() {
 	
 	// Set up object to contain particles and set some default values
 	var particles = {},
-		particleIndex = 100,
+		particleIndex = 50,
 		settings = {
 			hasStarted: false,
 			density: 15,
@@ -145,7 +145,7 @@ window.onload = function() {
 			settings.initvxrnd = -15;
 			settings.initvx = 3;
 			settings.initvyrnd = 3;
-			settings.initvy = 2*hfactor;
+			settings.initvy = 3*hfactor;
 			settings.startingScale = 1;
 			settings.gravity = 0.7;
 			settings.noClear = true;
@@ -161,7 +161,7 @@ window.onload = function() {
 			settings.startingY = canvas.height * 0.95;
 			settings.startingX = canvas.width / 4;
 			settings.initvx = 3;
-			settings.initvy = 40*hfactor;
+			settings.initvy = 38*hfactor;
 			settings.initr = -98;
 			settings.initvr = 1;
 			settings.startingScale = 0.1;
@@ -176,6 +176,7 @@ window.onload = function() {
 			settings.diefade = true;
 			settings.floorbounce = true;
 			settings.rotate = false;
+			settings.initvy = 38*hfactor;
 			settings.partLife = 280;
 			break;
 		case "stickmove":
