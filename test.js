@@ -18,18 +18,17 @@
 // character limit lol
 
 window.onload = function() {
-	
 	// get url arguments,strip out underscores, etc
 	const queryString = window.location.search;
-	//console.log(queryString);
 	const urlParams = new URLSearchParams(queryString);
 	var newwords = urlParams.get('words');
 	if (!newwords) {
 		newwords = 'Hello___Sir';
 	}
+	// triple underscore = newline
 	const gostring = newwords.split('___').join('\n');
 	var animStyle = urlParams.get('style');
-	// If no style is requested, pick one from this herearray
+	// If no style is requested, pick one from this here array
 	if (!animStyle) {
 		var textArray = [
 			'vanilla',
@@ -37,6 +36,7 @@ window.onload = function() {
 			'bubbles',
 			'solitaire',
 			'stickmove',
+			'firework',
 			'bounce'
 		];
 		var randomNumber = Math.floor(Math.random()*textArray.length);
@@ -111,7 +111,7 @@ window.onload = function() {
 			startingY: canvas.height * 1.1,
 			gravity: 0.5,
 			startingScale: 0.2,
-			maxScale: 1.3,
+			maxScale: 1,
 			growspeed: 0.01,
 			trails: false,
 			clear: true,
@@ -123,10 +123,11 @@ window.onload = function() {
 			initvxrnd: 16,
 			initvx: 8,
 			initvyrnd: 4,
-			initvy: 33*hfactor,
+			initvy: 43*hfactor,
 			initr: 0,
 			initvrrnd: 0,
-			initvr: 0
+			initvr: 0,
+			triggervy: -2
 		};
 	switch(animStyle) {
 		case "vanilla":
@@ -149,6 +150,26 @@ window.onload = function() {
 			settings.gravity = 0.7;
 			settings.noClear = true;
 			settings.fadeSpeed = 0;
+			break;
+		case "firework":
+			particleIndex = 1;
+			settings.density = 1000;
+			settings.diefade = true;
+			settings.floorbounce = true;
+			settings.rotate = true;
+			settings.partLife = 320;
+			settings.startingY = canvas.height * 0.95;
+			settings.startingX = canvas.width / 4;
+			settings.initvx = 3;
+			settings.initvy = 40*hfactor;
+			settings.initr = -98;
+			settings.initvr = 1;
+			settings.startingScale = 0.1;
+			settings.maxScale = 0.5;
+			settings.growspeed = 0.01;
+			settings.gravity = 0.7;
+			settings.fadeSpeed = 0;
+			settings.triggervy = 5;
 			break;
 		case "bounce":
 			particleIndex = 50;
@@ -226,7 +247,7 @@ window.onload = function() {
 			settings.floorbounce = false;
 			settings.rotate = true;
 	}
-	// Set up a function to create multiple particles
+	// Set up a function to create a new particle //////////////////////////////////////////////////////////// PARTICLE Function
 	function Particle() {
 		// Establish starting positions and velocities
 		if (!settings.pointStart) {
@@ -259,7 +280,6 @@ window.onload = function() {
 		// Object used as it's simpler to manage that an array
 		// We work through the contents backwards so that new objects sit behind older objects
 		// because it looks nicer that way
-		particleIndex --;
 		if (particleIndex > 0) {
 			particles[particleIndex] = this;
 			this.id = particleIndex;
@@ -270,8 +290,10 @@ window.onload = function() {
 			this.moveTarget = (Math.random() * 20) + 40;
 			this.seed = Math.random();
 		}
+		particleIndex --;
 	}
-
+	
+	// Particle draw function ///////////////////////////////////////////////////////////////////////////////// PARTICLE Draw
 	Particle.prototype.draw = function() {
 		switch(animStyle) {
 			case "vanilla":
@@ -340,6 +362,101 @@ window.onload = function() {
 				context.drawImage(img, this.x-(this.newwidth / 2), this.y-(this.newheight / 2),this.newwidth,this.newheight);
 				context.restore();
 				// //////////////////////////////////////////////////////////////////////////////////////////// END SOLITAIRE
+				break;
+			case "firework":
+				// //////////////////////////////////////////////////////////////////////////////////////////// FIREWORK
+				this.x += this.vx;
+				this.y += this.vy;
+				this.r += this.vr;
+				
+				if (this.scale < settings.maxScale) {
+					this.scale += settings.growspeed;
+				}
+				// If Particle is old, it gets processed.  To death.
+				if (this.life > this.maxLife) {
+					this.opacity -= 0.1;
+					if (this.opacity <= 0) {
+						delete particles[this.id];
+						return;
+					}
+				}
+				if (this.vy > settings.triggervy) {
+					console.log("trigger");
+					animStyle = "explosion";
+					settings.diefade = true;
+					settings.floorbounce = true;
+					settings.rotate = true;
+					settings.startingX = this.x;
+					settings.startingY = this.y;
+					settings.startingScale = 0.1;
+					settings.maxScale = 3.8;
+					settings.gravity = 0.7;
+					settings.growspeed = 0.01;
+					particleIndex = 30;
+					for (var i = 0; i < 30; i++) {
+						settings.initvx = Math.random() * 12;
+						settings.initvy = (Math.random() * 8) + 7;
+						settings.partLife = (Math.random() * 40) + 90;
+						settings.bounceFactor = (Math.random() * 0.3) + 0.6;
+						settings.initr = settings.initvx;
+						new Particle();
+					}
+					delete particles[this.id];
+				}
+				// Adjust for gravity
+				this.vy += settings.gravity;
+				// work out the new image size now, saves on an extra calculation or two later
+				this.newwidth = img.width * this.scale;
+				this.newheight = img.height * this.scale;
+				// draw the image
+				context.clearRect(settings.leftWall, settings.groundLevel, canvas.width, canvas.height);
+				// rotating stuff in canvas is weird, you have to move the 0,0 of the canvas to the centre of the
+				// object, rotate the canvas to the required angle, draw the whatever, the reset the canvas position/rotation back to normal
+				context.save();
+				context.translate(this.x, this.y);
+				context.rotate(this.r * Math.PI / 180);
+				context.globalAlpha = this.opacity;
+				context.drawImage(img, -(this.newwidth / 2), -(this.newheight / 2),this.newwidth,this.newheight);
+				context.restore();
+				// //////////////////////////////////////////////////////////////////////////////////////////// END FIREWORK
+				break;
+			case "explosion":
+				// //////////////////////////////////////////////////////////////////////////////////////////// EXPLOSION
+				this.x += this.vx;
+				this.y += this.vy;
+				this.r += this.vr;
+				
+				if (this.scale < settings.maxScale) {
+					this.scale += settings.growspeed;
+				}
+				// If Particle is old, it gets processed.  To death.
+				if (this.life > this.maxLife) {
+					this.opacity -= 0.1;
+					if (this.opacity <= 0) {
+						delete particles[this.id];
+						return;
+					}
+				}
+				// if it's offscreen kill it.
+				if (this.y-(this.newheight / 2) > canvas.height * 1.5 && this.life > 60) {
+					delete particles[this.id];
+				}
+				// Adjust for gravity
+				this.vy += settings.gravity;
+				// work out the new image size now, saves on an extra calculation or two later
+				this.newwidth = img.width * this.scale;
+				this.newheight = img.height * this.scale;
+				// draw the image
+				context.clearRect(settings.leftWall, settings.groundLevel, canvas.width, canvas.height);
+				// rotating stuff in canvas is weird, you have to move the 0,0 of the canvas to the centre of the
+				// object, rotate the canvas to the required angle, draw the whatever, the reset the canvas position/rotation back to normal
+				context.save();
+				context.translate(this.x, this.y);
+				context.rotate(this.r * Math.PI / 180);
+				context.globalAlpha = this.opacity;
+				context.drawImage(img, -(this.newwidth / 2), -(this.newheight / 2),this.newwidth,this.newheight);
+				context.restore();
+				// //////////////////////////////////////////////////////////////////////////////////////////// END EXPLOSION
 				break;
 			case "bounce":
 				// //////////////////////////////////////////////////////////////////////////////////////////// BOUNCE
@@ -577,9 +694,12 @@ window.onload = function() {
 		
 		// Add new particles
 		for (var i = 0; i < settings.density; i++) {
-			if (Math.random() > 0.97) {
+			if (!settings.hasStarted) {
 				new Particle();
+				console.log("first one");
 				settings.hasStarted = true;
+			} else if (Math.random() > 0.97) {
+				new Particle();
 			}
 		}
 		
@@ -590,6 +710,7 @@ window.onload = function() {
 			particles[i].draw();
 			numPart ++;
 		}
+		
 		// When the number of particles counted above hits, zero, we either face the canvas out or just stop the loop
 		if (numPart == 0 && settings.noClear && settings.hasStarted) {
 			console.log('turn off');
