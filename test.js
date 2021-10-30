@@ -67,7 +67,7 @@ window.onload = function() {
 					"bold": false,
 				};
 				textImage.setStyle(style);
-				img = textImage.toImage(newWords[newWords.length-i-1]);
+				img = textImage.toImage(goString[goString.length-i-1]);
 				imgArray.push(img)
 			}
 			// create new TextImage object
@@ -165,7 +165,7 @@ window.onload = function() {
 			gravity: 0.5,
 			startingScale: 0.2,
 			maxScale: 1,
-			growspeed: 0.01,
+			growSpeed: 0.01,
 			trails: false,
 			clear: true,
 			dieDelay: 10,
@@ -194,8 +194,8 @@ window.onload = function() {
 			settings.initvy = 32*hfactor;
 			settings.initvyrnd = 0.8;
 			settings.initvxrnd = 0.2;
-			settings.maxScale = 2.5;
-			settings.growspeed = 0.055;
+			startingScale: 0.1,
+			settings.growSpeed = 0.01;
 			settings.initr = -98;
 			settings.initvr = 3.2;
 			break;
@@ -207,8 +207,7 @@ window.onload = function() {
 			settings.initvy = 32*hfactor;
 			settings.initvyrnd = 0.8;
 			settings.initvxrnd = 0.2;
-			settings.maxScale = 2.5;
-			settings.growspeed = 0.055;
+			settings.growSpeed = 0.025;
 			settings.initr = -98;
 			settings.initvr = 3.2;
 			break;
@@ -245,7 +244,7 @@ window.onload = function() {
 			settings.initvr = 1;
 			settings.startingScale = 0.1;
 			settings.maxScale = 0.5;
-			settings.growspeed = 0.01;
+			settings.growSpeed = 0.01;
 			settings.gravity = 0.7;
 			settings.fadeSpeed = 0;
 			settings.triggervy = 5;
@@ -283,7 +282,7 @@ window.onload = function() {
 			settings.gravity = -0.04;
 			settings.startingScale = 0.1;
 			settings.maxScale = 0.8;
-			settings.growspeed = 0.06;
+			settings.growSpeed = 0.06;
 			settings.initvyrnd = 1;
 			settings.initvy = 1*hfactor;
 			settings.partLife = 190;
@@ -299,7 +298,7 @@ window.onload = function() {
 			settings.partLife = 290;
 			settings.startingX = canvas.width / 1.02;
 			settings.startingScale = 0.2;
-			settings.growspeed = 0.005;
+			settings.growSpeed = 0.005;
 			settings.initvxrnd = 1;
 			settings.initvx = 9;
 			settings.initvyrnd = 1;
@@ -314,7 +313,7 @@ window.onload = function() {
 			settings.startingX = canvas.width / 1.45;
 			settings.startingY = canvas.height * 0.23;
 			settings.startingScale = 0.2;
-			settings.growspeed = 0.01;
+			settings.growSpeed = 0.01;
 			settings.initvxrnd = 8;
 			settings.initvx = -2;
 			settings.initvyrnd = 5;
@@ -378,7 +377,7 @@ window.onload = function() {
 					this.i = 0;
 					this.myImg = imgArray[particleIndex];
 					this.vy = (Math.random() * settings.initvyrnd) - settings.initvy;
-					this.vx = (particleIndex - (imgArray.length/2))*-2.8
+					this.vx = (particleIndex - (imgArray.length/2))*-1.3
 					this.vr += (Math.random() *0.4);
 				}
 				particleIndex ++;
@@ -409,7 +408,7 @@ window.onload = function() {
 				this.r += this.vr;
 				
 				if (!this.stopgrow) {
-					this.scale += settings.growspeed;
+					this.scale += settings.growSpeed;
 				}
 				// if it's offscreen kill it.
 				if (this.y-(this.newheight / 2) > canvas.height * 1.2 && this.life > 60) {
@@ -447,7 +446,7 @@ window.onload = function() {
 				this.r += this.vr;
 				
 				if (this.scale < settings.maxScale) {
-					this.scale += settings.growspeed;
+					this.scale += settings.growSpeed;
 				}
 				// If Particle is old, it gets processed.  To death.
 				if (this.life > this.maxLife) {
@@ -477,7 +476,7 @@ window.onload = function() {
 				this.r += this.vr;
 				
 				if (this.scale < settings.maxScale) {
-					this.scale += settings.growspeed;
+					this.scale += settings.growSpeed;
 				}
 				// If Particle is old, it gets processed.  To death.
 				if (this.life > this.maxLife) {
@@ -514,7 +513,7 @@ window.onload = function() {
 				this.r += this.vr;
 				
 				if (this.scale < settings.maxScale) {
-					this.scale += settings.growspeed;
+					this.scale += settings.growSpeed;
 				}
 				// If Particle is old, it gets processed.  To death.
 				if (this.life > this.maxLife) {
@@ -535,7 +534,7 @@ window.onload = function() {
 					settings.startingScale = 0.1;
 					settings.maxScale = 3.8;
 					settings.gravity = 0.7;
-					settings.growspeed = 0.02;
+					settings.growSpeed = 0.02;
 					particleIndex = 30;
 					for (var i = 0; i < 30; i++) {
 						settings.initvx = (Math.random() * 40)-17;
@@ -571,7 +570,7 @@ window.onload = function() {
 				this.r += this.vr;
 				
 				if (this.scale < settings.maxScale) {
-					this.scale += settings.growspeed;
+					this.scale += settings.growSpeed;
 				}
 				// If Particle is old, it gets processed.  To death.
 				if (this.life > this.maxLife) {
@@ -610,7 +609,7 @@ window.onload = function() {
 				this.r += this.vr;
 				
 				if (this.scale < settings.maxScale) {
-					this.scale += settings.growspeed;
+					this.scale += settings.growSpeed;
 				} else {
 					this.grow = false;
 				}
@@ -728,7 +727,7 @@ window.onload = function() {
 				this.r += this.vr+this.seed;
 				
 				if (this.scale < settings.maxScale) {
-					this.scale += settings.growspeed;
+					this.scale += settings.growSpeed;
 				}
 				// If Particle is old, it gets processed.  To death.
 				if (this.life > this.maxLife) {
@@ -769,7 +768,7 @@ window.onload = function() {
 				this.r += this.vr;
 				
 				if (this.scale < settings.maxScale) {
-					this.scale += settings.growspeed;
+					this.scale += settings.growSpeed;
 				} else {
 					this.grow = false;
 				}
@@ -801,7 +800,7 @@ window.onload = function() {
 				this.r += this.vr;
 				
 				if (this.scale < settings.maxScale) {
-					this.scale += settings.growspeed;
+					this.scale += settings.growSpeed;
 				} else {
 					this.grow = false;
 				}
