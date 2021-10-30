@@ -400,17 +400,17 @@ window.onload = function() {
 	Particle.prototype.draw = function() {
 		switch(animStyle) {
 			case "circle":
-				// //////////////////////////////////////////////////////////////////////////////////////////// VANILLA
+				// //////////////////////////////////////////////////////////////////////////////////////////// CIRCLE
 				this.r += this.spinSpeed;
 				
 				if (this.r > 980-(this.id*4) && !this.finish) {
 					this.finish = true;
 					this.oldX = this.x;
 					this.oldY = this.y;
-					this.x = Math.cos(this.r * Math.PI / 180) * this.spinDiameter + centreX;
-					this.y = Math.sin(this.r * Math.PI / 180) * this.spinDiameter + centreY;
-					this.vx = this.x - this.oldX;
-					this.vy = this.y - this.oldY;
+					this.newX = Math.cos(this.r * Math.PI / 180) * this.spinDiameter + centreX;
+					this.newY = Math.sin(this.r * Math.PI / 180) * this.spinDiameter + centreY;
+					this.vx = this.newX - this.oldX;
+					this.vy = this.newY - this.oldY;
 				} else if (!this.finish) {
 					this.x = Math.cos(this.r * Math.PI / 180) * this.spinDiameter + centreX;
 					this.y = Math.sin(this.r * Math.PI / 180) * this.spinDiameter + centreY;
@@ -444,10 +444,10 @@ window.onload = function() {
 				context.globalAlpha = this.opacity;
 				context.drawImage(this.myImg, -(this.newwidth / 2), -(this.newheight / 2),this.newwidth,this.newheight);
 				context.restore();
-				// //////////////////////////////////////////////////////////////////////////////////////////// END VANILLA
+				// //////////////////////////////////////////////////////////////////////////////////////////// END CIRCLE
 				break;
 			case "splats":
-				// //////////////////////////////////////////////////////////////////////////////////////////// VANILLA
+				// //////////////////////////////////////////////////////////////////////////////////////////// SPLATS
 				this.x += this.vx;
 				this.y += this.vy;
 				this.r += this.vr;
@@ -482,7 +482,7 @@ window.onload = function() {
 				context.globalAlpha = this.opacity;
 				context.drawImage(this.myImg, -(this.newwidth / 2), -(this.newheight / 2),this.newwidth,this.newheight);
 				context.restore();
-				// //////////////////////////////////////////////////////////////////////////////////////////// END VANILLA
+				// //////////////////////////////////////////////////////////////////////////////////////////// END SPLATS
 				break;
 			case "vanilla":
 				// //////////////////////////////////////////////////////////////////////////////////////////// VANILLA
