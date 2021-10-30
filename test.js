@@ -24,7 +24,7 @@ window.onload = function() {
 	const queryString = window.location.search;
 	const urlParams = new URLSearchParams(queryString);
 	// Pull Style option (if there is one)
-	const animStyle = urlParams.get('style');
+	var animStyle = urlParams.get('style');
 	// If no style is requested, pick one from this here array
 	if (!animStyle) {
 		var textArray = [
