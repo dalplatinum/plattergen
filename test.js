@@ -9,25 +9,22 @@
 // *DONE* grow on create up to 100%
 // *DONE* Random style if none selected
 // Individual letters mode
+//  Make them go in a circle
+//  And stuff like that
 // Image mode
 // *DONE* When particle count = 0 clear sceen, stop loop
 // Quality/number options
-// make the code more efficient
+// *DONE* make the code more efficient
 // 	put some sort of debug counter on the screen that counts operations or something
-// 	might want to put each 'style' into it's own particle type?  would reduce the amount of 'ifs'
+// *DONE*	might want to put each 'style' into it's own particle type?  would reduce the amount of 'ifs'
 // character limit lol
 
 window.onload = function() {
 	// get url arguments,strip out underscores, etc
 	const queryString = window.location.search;
 	const urlParams = new URLSearchParams(queryString);
-	var newwords = urlParams.get('words');
-	if (!newwords) {
-		newwords = 'Hello___Sir';
-	}
-	// triple underscore = newline
-	const gostring = newwords.split('___').join('\n');
-	var animStyle = urlParams.get('style');
+	// Pull Style option (if there is one)
+	const animStyle = urlParams.get('style');
 	// If no style is requested, pick one from this here array
 	if (!animStyle) {
 		var textArray = [
@@ -37,33 +34,89 @@ window.onload = function() {
 			'solitaire',
 			'stickmove',
 			'firework',
-			'bounce'
+			'bounce',
+			'splats'
 		];
 		var randomNumber = Math.floor(Math.random()*textArray.length);
 		animStyle = textArray[randomNumber];
 		console.log(animStyle);
 	}
-	// create new TextImage object
-	var textImage = TextImage();
-	// Not sure I can set a gradient, which is a shame.
-	//var grd = ctx.createLinearGradient(0,0,0,150);
-	//grd.addColorStop(0,"red");
-	//grd.addColorStop(1,"black");
-	// linear-gradient(red, black)
-	var style = {
-		"font": "Luckiest Guy,impact,Consolas,sans-serif",
-		"align": "center",
-		"color": "rgba(0, 0, 0, 1)",
-		"size": 55,
-		"background": "rgba(0, 0, 0, 0)",
-		"stroke": 6,
-		"strokeColor": "rgba(255, 255, 255, 1)",
-		"lineHeight": "1.2em",
-		"bold": false,
-	};
-	textImage.setStyle(style);
-	// convert text message to image element
-	img = textImage.toImage(gostring);
+	// Pull the text from the URL args
+	var newWords = urlParams.get('words');
+	// If there is none, use a default
+	if (!newWords) {
+		newWords = 'Hello___Sir';
+	}
+	switch(animStyle) {
+		case "splats":
+			// triple underscore = regular space
+			var goString = newWords.split('___').join(' ');
+			// Create an array to hold the images
+			var imgArray = new Array();
+			for (var i = 0; i < goString.length; i++) {
+				var textImage = TextImage();
+				var style = {
+					"font": "Luckiest Guy,impact,Consolas,sans-serif",
+					"align": "center",
+					"color": "rgba(0, 0, 0, 1)",
+					"size": 55,
+					"background": "rgba(0, 0, 0, 0)",
+					"stroke": 6,
+					"strokeColor": "rgba(255, 255, 255, 1)",
+					"lineHeight": "1.2em",
+					"bold": false,
+				};
+				textImage.setStyle(style);
+				img = textImage.toImage(newWords[newWords.length-i-1]);
+				imgArray.push(img)
+			}
+			// create new TextImage object
+			var textImage = TextImage();
+			// Not sure I can set a gradient, which is a shame.
+			//var grd = ctx.createLinearGradient(0,0,0,150);
+			//grd.addColorStop(0,"red");
+			//grd.addColorStop(1,"black");
+			// linear-gradient(red, black)
+			var style = {
+				"font": "Luckiest Guy,impact,Consolas,sans-serif",
+				"align": "center",
+				"color": "rgba(0, 0, 0, 1)",
+				"size": 55,
+				"background": "rgba(0, 0, 0, 0)",
+				"stroke": 6,
+				"strokeColor": "rgba(255, 255, 255, 1)",
+				"lineHeight": "1.2em",
+				"bold": false,
+			};
+			textImage.setStyle(style);
+			// convert text message to image element
+			img = textImage.toImage(goString);
+			break;
+		default:
+			// triple underscore = newline
+			var goString = newWords.split('___').join('\n');
+			// create new TextImage object
+			var textImage = TextImage();
+			// Not sure I can set a gradient, which is a shame.
+			//var grd = ctx.createLinearGradient(0,0,0,150);
+			//grd.addColorStop(0,"red");
+			//grd.addColorStop(1,"black");
+			// linear-gradient(red, black)
+			var style = {
+				"font": "Luckiest Guy,impact,Consolas,sans-serif",
+				"align": "center",
+				"color": "rgba(0, 0, 0, 1)",
+				"size": 55,
+				"background": "rgba(0, 0, 0, 0)",
+				"stroke": 6,
+				"strokeColor": "rgba(255, 255, 255, 1)",
+				"lineHeight": "1.2em",
+				"bold": false,
+			};
+			textImage.setStyle(style);
+			// convert text message to image element
+			img = textImage.toImage(goString);
+	}
 
 	// Initialise an empty canvas and place it on the page
 	var canvas = document.createElement("canvas");
@@ -133,6 +186,32 @@ window.onload = function() {
 		case "vanilla":
 			settings.rotate = true;
 			break;
+		case "circle":
+			particleIndex = 0;
+			settings.partLife = 320;
+			settings.startingX = canvas.width / 2;
+			settings.startingY  = canvas.height * 1.05;
+			settings.initvy = 32*hfactor;
+			settings.initvyrnd = 0.8;
+			settings.initvxrnd = 0.2;
+			settings.maxScale = 2.5;
+			settings.growspeed = 0.055;
+			settings.initr = -98;
+			settings.initvr = 3.2;
+			break;
+		case "splats":
+			particleIndex = 0;
+			settings.partLife = 320;
+			settings.startingX = canvas.width / 2;
+			settings.startingY  = canvas.height * 1.05;
+			settings.initvy = 32*hfactor;
+			settings.initvyrnd = 0.8;
+			settings.initvxrnd = 0.2;
+			settings.maxScale = 2.5;
+			settings.growspeed = 0.055;
+			settings.initr = -98;
+			settings.initvr = 3.2;
+			break;
 		case "solitaire":
 			particleIndex = 20;
 			settings.density = 4;
@@ -176,7 +255,7 @@ window.onload = function() {
 			settings.diefade = true;
 			settings.floorbounce = true;
 			settings.rotate = false;
-			settings.initvy = 38*hfactor;
+			settings.initvy = 35*hfactor;
 			settings.partLife = 280;
 			break;
 		case "stickmove":
@@ -281,23 +360,86 @@ window.onload = function() {
 		// Object used as it's simpler to manage that an array
 		// We work through the contents backwards so that new objects sit behind older objects
 		// because it looks nicer that way
-		if (particleIndex > 0) {
-			particles[particleIndex] = this;
-			this.id = particleIndex;
-			this.life = 0;
-			this.opacity = 1;
-			this.maxLife = settings.partLife;
-			this.moveTime = 0;
-			this.moveTarget = (Math.random() * 20) + 40;
-			this.seed = Math.random();
-			this.i = 0;
+		switch(animStyle) {
+			case "splats":
+				if (particleIndex < imgArray.length) {
+					particles[particleIndex] = this;
+					this.id = particleIndex;
+					this.life = 0;
+					this.opacity = 1;
+					this.maxLife = settings.partLife;
+					this.moveTime = 0;
+					this.spinTime = 200;
+					this.spinDiameter = 200;
+					this.moveTarget = (Math.random() * 20) + 40;
+					this.seed = Math.random();
+					this.drag = (Math.random() *0.5);
+					this.stopgrow = false;
+					this.i = 0;
+					this.myImg = imgArray[particleIndex];
+					this.vy = (Math.random() * settings.initvyrnd) - settings.initvy;
+					this.vx = (particleIndex - (imgArray.length/2))*-2.8
+					this.vr += (Math.random() *0.4);
+				}
+				particleIndex ++;
+				break;
+			default:
+				if (particleIndex > 0) {
+					particles[particleIndex] = this;
+					this.id = particleIndex;
+					this.life = 0;
+					this.opacity = 1;
+					this.maxLife = settings.partLife;
+					this.moveTime = 0;
+					this.moveTarget = (Math.random() * 20) + 40;
+					this.seed = Math.random();
+					this.i = 0;
+				}
+				particleIndex --;
 		}
-		particleIndex --;
 	}
 	
 	// Particle draw function ///////////////////////////////////////////////////////////////////////////////// PARTICLE Draw
 	Particle.prototype.draw = function() {
 		switch(animStyle) {
+			case "splats":
+				// //////////////////////////////////////////////////////////////////////////////////////////// VANILLA
+				this.x += this.vx;
+				this.y += this.vy;
+				this.r += this.vr;
+				
+				if (!this.stopgrow) {
+					this.scale += settings.growspeed;
+				}
+				// if it's offscreen kill it.
+				if (this.y-(this.newheight / 2) > canvas.height * 1.2 && this.life > 60) {
+					delete particles[this.id];
+				}
+				if (this.vy >0) {
+					this.vx=0;
+					this.vr=0;
+					this.vy += settings.gravity * this.drag;
+					this.drag /= 0.95;
+					this.stopgrow = true;
+				} else {
+					// Adjust for gravity
+					this.vy += settings.gravity;
+				}
+				// Set up the new width based on scale
+				this.newwidth = this.myImg.width * this.scale;
+				this.newheight = this.myImg.height * this.scale;
+				// draw the image
+				context.clearRect(settings.leftWall, settings.groundLevel, canvas.width, canvas.height);
+				// rotating stuff in canvas is weird, you have to move the 0,0 of the canvas to the centre of the
+				// object, rotate the canvas to the required angle, draw the whatever, the reset the canvas position/rotation back to normal
+				context.save();
+				context.translate(this.x, this.y);
+				context.rotate(this.r * Math.PI / 180);
+				context.globalAlpha = this.opacity;
+				context.drawImage(this.myImg, -(this.newwidth / 2), -(this.newheight / 2),this.newwidth,this.newheight);
+				context.restore();
+				// //////////////////////////////////////////////////////////////////////////////////////////// END VANILLA
+				break;
 			case "vanilla":
 				// //////////////////////////////////////////////////////////////////////////////////////////// VANILLA
 				this.x += this.vx;
@@ -700,7 +842,7 @@ window.onload = function() {
 		
 		// Add new particles
 		for (var i = 0; i < settings.density; i++) {
-			if (!settings.hasStarted) {
+			if (!settings.hasStarted ) {
 				new Particle();
 				console.log("first one");
 				settings.hasStarted = true;
@@ -728,7 +870,40 @@ window.onload = function() {
 			clearInterval(workIt);
 		}
 	}
+	function goLoop2() {
+		// clear the canvas
+		canvas.width = canvas.width;
+		
+		// Add all new particles
+		if (!settings.hasStarted) {
+			for (var i = 0; i < goString.length; i++) {
+				new Particle();
+			}
+			settings.hasStarted = true;
+			console.log('Thanks');
+		}
+		
+		// We count the number of particles in each loop so we can tell when they're all gone.
+		var numPart = 0;
+		// Draw each particle
+		for (var i in particles) {
+			particles[i].draw();
+			numPart ++;
+		}
+		
+		// When the number of particles counted above hits, zero, we either face the canvas out or just stop the loop
+		if (numPart == 0) {
+			console.log('bye');
+			canvas.width = canvas.width;
+			clearInterval(workIt);
+		}
+	}
 	// Movement loop
-	var workIt = setInterval(goLoop, 30);
+	if (animStyle == 'splats') {
+		
+		var workIt = setInterval(goLoop2, 30);
+	} else {
+		var workIt = setInterval(goLoop, 30);
+	}
 };
 
