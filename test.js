@@ -35,7 +35,8 @@ window.onload = function() {
 			'stickmove',
 			'firework',
 			'bounce',
-			'splats'
+			'splats',
+			'circle'
 		];
 		var randomNumber = Math.floor(Math.random()*textArray.length);
 		animStyle = textArray[randomNumber];
@@ -47,36 +48,13 @@ window.onload = function() {
 	if (!newWords) {
 		newWords = 'Hello___Sir';
 	}
-	switch(animStyle) {
-		case "splats":
-			// triple underscore = regular space
-			var goString = newWords.split('___').join(' ');
-			// Create an array to hold the images
-			var imgArray = new Array();
-			for (var i = 0; i < goString.length; i++) {
-				var textImage = TextImage();
-				var style = {
-					"font": "Luckiest Guy,impact,Consolas,sans-serif",
-					"align": "center",
-					"color": "rgba(0, 0, 0, 1)",
-					"size": 55,
-					"background": "rgba(0, 0, 0, 0)",
-					"stroke": 6,
-					"strokeColor": "rgba(255, 255, 255, 1)",
-					"lineHeight": "1.2em",
-					"bold": false,
-				};
-				textImage.setStyle(style);
-				img = textImage.toImage(goString[goString.length-i-1]);
-				imgArray.push(img)
-			}
-			// create new TextImage object
+	if (animStyle == 'splats' || animStyle == 'circle') {
+		// triple underscore = regular space
+		var goString = newWords.split('___').join(' ');
+		// Create an array to hold the images
+		var imgArray = new Array();
+		for (var i = 0; i < goString.length; i++) {
 			var textImage = TextImage();
-			// Not sure I can set a gradient, which is a shame.
-			//var grd = ctx.createLinearGradient(0,0,0,150);
-			//grd.addColorStop(0,"red");
-			//grd.addColorStop(1,"black");
-			// linear-gradient(red, black)
 			var style = {
 				"font": "Luckiest Guy,impact,Consolas,sans-serif",
 				"align": "center",
@@ -89,33 +67,33 @@ window.onload = function() {
 				"bold": false,
 			};
 			textImage.setStyle(style);
-			// convert text message to image element
-			img = textImage.toImage(goString);
-			break;
-		default:
-			// triple underscore = newline
-			var goString = newWords.split('___').join('\n');
-			// create new TextImage object
-			var textImage = TextImage();
-			// Not sure I can set a gradient, which is a shame.
-			//var grd = ctx.createLinearGradient(0,0,0,150);
-			//grd.addColorStop(0,"red");
-			//grd.addColorStop(1,"black");
-			// linear-gradient(red, black)
-			var style = {
-				"font": "Luckiest Guy,impact,Consolas,sans-serif",
-				"align": "center",
-				"color": "rgba(0, 0, 0, 1)",
-				"size": 55,
-				"background": "rgba(0, 0, 0, 0)",
-				"stroke": 6,
-				"strokeColor": "rgba(255, 255, 255, 1)",
-				"lineHeight": "1.2em",
-				"bold": false,
-			};
-			textImage.setStyle(style);
-			// convert text message to image element
-			img = textImage.toImage(goString);
+			img = textImage.toImage(goString[goString.length-i-1]);
+			imgArray.push(img)
+		}
+	} else {
+		// triple underscore = newline
+		var goString = newWords.split('___').join('\n');
+		// create new TextImage object
+		var textImage = TextImage();
+		// Not sure I can set a gradient, which is a shame.
+		//var grd = ctx.createLinearGradient(0,0,0,150);
+		//grd.addColorStop(0,"red");
+		//grd.addColorStop(1,"black");
+		// linear-gradient(red, black)
+		var style = {
+			"font": "Luckiest Guy,impact,Consolas,sans-serif",
+			"align": "center",
+			"color": "rgba(0, 0, 0, 1)",
+			"size": 55,
+			"background": "rgba(0, 0, 0, 0)",
+			"stroke": 6,
+			"strokeColor": "rgba(255, 255, 255, 1)",
+			"lineHeight": "1.2em",
+			"bold": false,
+		};
+		textImage.setStyle(style);
+		// convert text message to image element
+		img = textImage.toImage(goString);
 	}
 
 	// Initialise an empty canvas and place it on the page
@@ -124,6 +102,8 @@ window.onload = function() {
 	context.fillstyle = "rgba(0, 0, 200, 0.5)";
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
+	var centreX = canvas.width/2;
+	var centreY = canvas.height/2;
 	//context.clearRect(0, 0, canvas.width, canvas.height)
 	document.body.appendChild(canvas);
 	var hfactor = (window.innerHeight / 1080);
@@ -152,7 +132,13 @@ window.onload = function() {
 		if ((t /= d / 2) < 1) return c / 2 * t * t + b;
 		return -c / 2 * ((--t) * (t - 2) - 1) + b;
 	}
-	
+	function findNewPoint(x, y, angle, distance) {
+		var result = {};
+		result.x = Math.cos(angle * Math.PI / 180) * distance + x;
+		result.y = Math.sin(angle * Math.PI / 180) * distance + y;
+		return result;
+	}
+
 	// Set up object to contain particles and set some default values
 	var particles = {},
 		particleIndex = 50,
@@ -160,7 +146,7 @@ window.onload = function() {
 			hasStarted: false,
 			density: 15,
 			pointStart: true,
-			startingX: canvas.width / 2,
+			startingX: centreX,
 			startingY: canvas.height * 1.1,
 			gravity: 0.5,
 			startingScale: 0.2,
@@ -189,20 +175,12 @@ window.onload = function() {
 		case "circle":
 			particleIndex = 0;
 			settings.partLife = 320;
-			settings.startingX = canvas.width / 2;
-			settings.startingY  = canvas.height * 1.05;
-			settings.initvy = 32*hfactor;
-			settings.initvyrnd = 0.8;
-			settings.initvxrnd = 0.2;
-			startingScale: 0.1,
-			settings.growSpeed = 0.01;
-			settings.initr = -98;
-			settings.initvr = 3.2;
+			settings.startingScale = 1;
 			break;
 		case "splats":
 			particleIndex = 0;
 			settings.partLife = 320;
-			settings.startingX = canvas.width / 2;
+			settings.startingX = centreX;
 			settings.startingY  = canvas.height * 1.05;
 			settings.initvy = 32*hfactor;
 			settings.initvyrnd = 0.8;
@@ -360,26 +338,46 @@ window.onload = function() {
 		// We work through the contents backwards so that new objects sit behind older objects
 		// because it looks nicer that way
 		switch(animStyle) {
+			case "circle":
+				if (particleIndex < imgArray.length) {
+					particles[particleIndex] = this;
+					this.id = particleIndex;
+					this.life = 0;
+					this.maxLife = settings.partLife;
+					this.moveTime = (Math.random() * 25);
+					this.spinTime = 200;
+					this.spinDiameter = 200;
+					if (imgArray.length <= 5) {
+						this.scale = 4.5;
+					} else {
+						this.scale = 4.5 / (imgArray.length / 5);
+					}
+					this.spinSpeed = 4;
+					this.rotOffset = (360/(imgArray.length+1))*this.id;
+					this.seed = Math.random();
+					this.finish = false;
+					this.drag = (Math.random() *0.5);
+					this.i = 0;
+					this.r = 0+this.rotOffset;
+					this.myImg = imgArray[particleIndex];
+				}
+				particleIndex ++;
+				break;
 			case "splats":
 				if (particleIndex < imgArray.length) {
 					particles[particleIndex] = this;
 					this.id = particleIndex;
 					this.life = 0;
-					this.opacity = 1;
 					this.maxLife = settings.partLife;
 					this.moveTime = 0;
-					this.spinTime = 200;
-					this.spinDiameter = 200;
 					this.moveTarget = (Math.random() * 20) + 40;
 					this.seed = Math.random();
 					this.drag = (Math.random() *0.5);
-					this.stopgrow = false;
 					this.i = 0;
 					this.myImg = imgArray[particleIndex];
 					this.vy = (Math.random() * settings.initvyrnd) - settings.initvy;
 					this.vx = (particleIndex - (imgArray.length/2))*-1.3
-					this.vr += (Math.random() *0.4);
-				}
+					this.vr += (Math.random() *0.4);				}
 				particleIndex ++;
 				break;
 			default:
@@ -401,6 +399,53 @@ window.onload = function() {
 	// Particle draw function ///////////////////////////////////////////////////////////////////////////////// PARTICLE Draw
 	Particle.prototype.draw = function() {
 		switch(animStyle) {
+			case "circle":
+				// //////////////////////////////////////////////////////////////////////////////////////////// VANILLA
+				this.r += this.spinSpeed;
+				
+				if (this.r > 980-(this.id*4) && !this.finish) {
+					this.finish = true;
+					this.oldX = this.x;
+					this.oldY = this.y;
+					this.x = Math.cos(this.r * Math.PI / 180) * this.spinDiameter + centreX;
+					this.y = Math.sin(this.r * Math.PI / 180) * this.spinDiameter + centreY;
+					this.vx = this.x - this.oldX;
+					this.vy = this.y - this.oldY;
+				} else if (!this.finish) {
+					this.x = Math.cos(this.r * Math.PI / 180) * this.spinDiameter + centreX;
+					this.y = Math.sin(this.r * Math.PI / 180) * this.spinDiameter + centreY;
+				}
+				
+				if (this.finish) {
+					// Fly off at a tangent
+					this.x += this.vx;
+					this.y += this.vy;
+					this.spinSpeed *= 0.99;
+					this.vy += settings.gravity;// * this.drag;
+					this.drag /= 0.95;
+				}
+				
+				// if it's offscreen kill it.
+				if (this.y-(this.newheight / 2) > canvas.height * 1.2 && this.life > 60) {
+					delete particles[this.id];
+				}
+				
+				// Set up the new width based on scale
+				this.newwidth = this.myImg.width * this.scale;
+				this.newheight = this.myImg.height * this.scale;
+				
+				// draw the image
+				context.clearRect(settings.leftWall, settings.groundLevel, canvas.width, canvas.height);
+				// rotating stuff in canvas is weird, you have to move the 0,0 of the canvas to the centre of the
+				// object, rotate the canvas to the required angle, draw the whatever, the reset the canvas position/rotation back to normal
+				context.save();
+				context.translate(this.x, this.y);
+				context.rotate((this.r-90) * Math.PI / 180);
+				context.globalAlpha = this.opacity;
+				context.drawImage(this.myImg, -(this.newwidth / 2), -(this.newheight / 2),this.newwidth,this.newheight);
+				context.restore();
+				// //////////////////////////////////////////////////////////////////////////////////////////// END VANILLA
+				break;
 			case "splats":
 				// //////////////////////////////////////////////////////////////////////////////////////////// VANILLA
 				this.x += this.vx;
@@ -898,8 +943,7 @@ window.onload = function() {
 		}
 	}
 	// Movement loop
-	if (animStyle == 'splats') {
-		
+	if (animStyle == 'splats' || animStyle == 'circle') {
 		var workIt = setInterval(goLoop2, 30);
 	} else {
 		var workIt = setInterval(goLoop, 30);
