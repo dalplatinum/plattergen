@@ -47,7 +47,10 @@ window.onload = function() {
 	// If there is none, use a default
 	if (!newWords) {
 		newWords = 'Hello___Sir';
-	}
+	};
+	if (newWords.includes("pirelli")) {
+		animStyle = 'circle';
+	};
 	if (animStyle == 'splats' || animStyle == 'circle') {
 		// triple underscore = regular space
 		var goString = newWords.split('___').join(' ');
@@ -195,7 +198,7 @@ window.onload = function() {
 			settings.diefade = false;
 			settings.floorbounce = true;
 			settings.rotate = false;
-			settings.partLife = 320;
+			settings.partLife = 260;
 			settings.startingY = canvas.height * 0.15;
 			settings.startingX = canvas.width * 0.9;
 			settings.initvxrnd = -15;
