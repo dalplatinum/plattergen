@@ -19,6 +19,14 @@
 // *DONE*	might want to put each 'style' into it's own particle type?  would reduce the amount of 'ifs'
 // character limit lol
 
+
+// Sort out scaling
+// Remove 'quick' ones from randomiser
+// Change splat to multiple splats
+// an effect that builds a wall/grid of text
+//  Maybe alternating colours?
+// Try to get colour fades working again?
+
 window.onload = function() {
 	// get url arguments,strip out underscores, etc
 	const queryString = window.location.search;
@@ -185,12 +193,13 @@ window.onload = function() {
 			settings.partLife = 320;
 			settings.startingX = centreX;
 			settings.startingY  = canvas.height * 1.05;
-			settings.initvy = 32*hfactor;
-			settings.initvyrnd = 0.8;
+			settings.initvy = 16*hfactor;
+			settings.initvyrnd = 0.3;
 			settings.initvxrnd = 0.2;
-			settings.growSpeed = 0.025;
+			settings.growSpeed = 0.022;
+			settings.gravity = 0.15;
 			settings.initr = -98;
-			settings.initvr = 3.2;
+			settings.initvr = 2.4;
 			break;
 		case "solitaire":
 			particleIndex = 20;
@@ -213,22 +222,23 @@ window.onload = function() {
 		case "firework":
 			particleIndex = 1;
 			settings.density = 1000;
-			settings.diefade = true;
+			settings.popOut = true;
 			settings.floorbounce = true;
 			settings.rotate = true;
-			settings.partLife = 320;
+			settings.partLife = 520;
 			settings.startingY = canvas.height * 0.95;
 			settings.startingX = canvas.width / 4;
 			settings.initvx = 3;
-			settings.initvy = 38*hfactor;
+			settings.initvxrnd = 8;
+			settings.initvy = 20*hfactor;
 			settings.initr = -98;
-			settings.initvr = 1;
+			settings.initvr = 3.5;
 			settings.startingScale = 0.1;
 			settings.maxScale = 0.5;
 			settings.growSpeed = 0.01;
-			settings.gravity = 0.7;
+			settings.gravity = 0.2;
 			settings.fadeSpeed = 0;
-			settings.triggervy = 5;
+			settings.triggervy = 2;
 			break;
 		case "bounce":
 			particleIndex = 50;
@@ -382,6 +392,21 @@ window.onload = function() {
 					this.vx = (particleIndex - (imgArray.length/2))*-1.3
 					this.vr += (Math.random() *0.4);				}
 				particleIndex ++;
+				break;
+			case "firework":
+				if (particleIndex > 0) {
+					particles[particleIndex] = this;
+					this.id = particleIndex;
+					this.life = 0;
+					this.opacity = 1;
+					this.maxLife = settings.partLife;
+					this.moveTime = 0;
+					this.moveTarget = (Math.random() * 20) + 40;
+					this.seed = Math.random();
+					this.i = 0;
+					this.vr = 1.25;
+				}
+				particleIndex --;
 				break;
 			default:
 				if (particleIndex > 0) {
@@ -581,15 +606,15 @@ window.onload = function() {
 					settings.startingY = this.y;
 					settings.startingScale = 0.1;
 					settings.maxScale = 3.8;
-					settings.gravity = 0.7;
+					settings.gravity = 0.2;
 					settings.growSpeed = 0.02;
 					particleIndex = 30;
 					for (var i = 0; i < 30; i++) {
 						settings.initvx = (Math.random() * 40)-17;
 						settings.initvy = (Math.random() * 8) + 7;
-						settings.partLife = (Math.random() * 40) + 90;
+						settings.partLife = (Math.random() * 40) + 150;
 						settings.bounceFactor = (Math.random() * 0.3) + 0.6;
-						settings.initr = settings.initvx;
+						settings.initr = settings.initvx*0.1;
 						new Particle();
 					}
 					delete particles[this.id];
@@ -615,7 +640,7 @@ window.onload = function() {
 				// //////////////////////////////////////////////////////////////////////////////////////////// EXPLOSION
 				this.x += this.vx;
 				this.y += this.vy;
-				this.r += this.vr;
+				this.r += this.vr*0.2;
 				
 				if (this.scale < settings.maxScale) {
 					this.scale += settings.growSpeed;
