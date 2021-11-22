@@ -33,19 +33,33 @@ window.onload = function() {
 	const urlParams = new URLSearchParams(queryString);
 	// Pull Style option (if there is one)
 	var animStyle = urlParams.get('style');
+	var customStyle = urlParams.get('custom');
 	// If no style is requested, pick one from this here array
 	if (!animStyle) {
-		var textArray = [
-			'vanilla',
-			'arc',
-			'bubbles',
-			'solitaire',
-			'stickmove',
-			'firework',
-			'bounce',
-			'splats',
-			'circle'
-		];
+		if (customStyle == 'djlocalhost') {
+			console.log('woi');
+			var textArray = [
+				'vanilla',
+				'arc',
+				'bubbles',
+				'solitaire',
+				'stickmove',
+				'bounce',
+				'circle'			];
+		} else {
+			var textArray = [
+				'vanilla',
+				'arc',
+				'bubbles',
+				'solitaire',
+				'stickmove',
+				'firework',
+				'bounce',
+				'circle'
+			];
+			// 				'splats',
+
+		}
 		var randomNumber = Math.floor(Math.random()*textArray.length);
 		animStyle = textArray[randomNumber];
 		console.log(animStyle);
