@@ -51,13 +51,13 @@ window.onload = function() {
 				'vanilla',
 				'arc',
 				'bubbles',
-				'solitaire',
+				'splats',
 				'stickmove',
 				'firework',
 				'bounce',
 				'circle'
 			];
-			// 				'splats',
+			// 				'solitaire',
 
 		}
 		var randomNumber = Math.floor(Math.random()*textArray.length);
@@ -207,13 +207,13 @@ window.onload = function() {
 			settings.partLife = 320;
 			settings.startingX = centreX;
 			settings.startingY  = canvas.height * 1.05;
-			settings.initvy = 16*hfactor;
-			settings.initvyrnd = 0.3;
-			settings.initvxrnd = 0.2;
-			settings.growSpeed = 0.022;
-			settings.gravity = 0.15;
-			settings.initr = -98;
-			settings.initvr = 2.4;
+			settings.initvy = 36*hfactor;
+			settings.initvyrnd = 0.9;
+			settings.initvxrnd = 0.3;
+			settings.growSpeed = 0.032;
+			settings.gravity = 0.68;
+			settings.initr = -90;
+			settings.initvr = 3.2;
 			break;
 		case "solitaire":
 			particleIndex = 20;
@@ -221,15 +221,15 @@ window.onload = function() {
 			settings.diefade = false;
 			settings.floorbounce = true;
 			settings.rotate = false;
-			settings.partLife = 260;
+			settings.partLife = 190;
 			settings.startingY = canvas.height * 0.15;
 			settings.startingX = canvas.width * 0.9;
 			settings.initvxrnd = -15;
 			settings.initvx = 3;
-			settings.initvyrnd = 3;
+			settings.initvyrnd = 5;
 			settings.initvy = 3*hfactor;
 			settings.startingScale = 1;
-			settings.gravity = 0.7;
+			settings.gravity = 0.75;
 			settings.noClear = true;
 			settings.fadeSpeed = 0;
 			break;
@@ -241,7 +241,7 @@ window.onload = function() {
 			settings.rotate = true;
 			settings.partLife = 520;
 			settings.startingY = canvas.height * 0.95;
-			settings.startingX = canvas.width / 4;
+			settings.startingX = canvas.width / 3;
 			settings.initvx = 3;
 			settings.initvxrnd = 8;
 			settings.initvy = 20*hfactor;
@@ -250,7 +250,7 @@ window.onload = function() {
 			settings.startingScale = 0.1;
 			settings.maxScale = 0.5;
 			settings.growSpeed = 0.01;
-			settings.gravity = 0.2;
+			settings.gravity = 0.25;
 			settings.fadeSpeed = 0;
 			settings.triggervy = 2;
 			break;
@@ -305,10 +305,10 @@ window.onload = function() {
 			settings.startingScale = 0.2;
 			settings.growSpeed = 0.005;
 			settings.initvxrnd = 1;
-			settings.initvx = 9;
+			settings.initvx = 10;
 			settings.initvyrnd = 1;
 			settings.initvy = 33*hfactor;
-			settings.initr = 98;
+			settings.initr = 48;
 			break;
 		case "vomit":
 			settings.diefade = true;
@@ -352,7 +352,7 @@ window.onload = function() {
 		this.scale = settings.startingScale;
 		this.seed = Math.random(100);
 		//this.bounceFactor = (this.seed/100) * 0.6;
-		this.bounceFactor = Math.random(1)/10 +0.6;
+		this.bounceFactor = Math.random(1)/10 +0.8;
 		
 		// Determine original X-axis speed based on setting limitation
 		this.vx = Math.random() * settings.initvxrnd - settings.initvx;
@@ -404,7 +404,7 @@ window.onload = function() {
 					this.myImg = imgArray[particleIndex];
 					this.vy = (Math.random() * settings.initvyrnd) - settings.initvy;
 					this.vx = (particleIndex - (imgArray.length/2))*-1.3
-					this.vr += (Math.random() *0.4);				}
+					this.vr += (Math.random() *0.5);				}
 				particleIndex ++;
 				break;
 			case "firework":
@@ -567,19 +567,25 @@ window.onload = function() {
 				}
 				// If Particle is old, it gets processed.  To death.
 				if (this.life > this.maxLife) {
-					this.opacity -= 0.1;
-					if (this.opacity <= 0) {
-						delete particles[this.id];
-						return;
+					//this.opacity -= 0.1;
+					//if (this.opacity <= 0) {
+					//	delete particles[this.id];
+					//	return;
+					//}
+				} else {
+				// Make it bounce
+					if (this.y+(this.newheight / 2) > canvas.height*1.02 && this.life > 10) {
+						this.y = (canvas.height*1.02)-(this.newheight / 2);
+						this.vy *= -this.bounceFactor;
+						this.vx *= 0.8;
+						this.grow = false;
 					}
 				}
-				// Make it bounce
-				if (this.y+(this.newheight / 2) > canvas.height*1.02 && this.life > 10) {
-					this.y = (canvas.height*1.02)-(this.newheight / 2);
-					this.vy *= -this.bounceFactor;
-					this.vx *= 0.8;
-					this.grow = false;
+				// if it's offscreen kill it.
+				if (this.y-(this.newheight / 2) > canvas.height * 1.5 && this.life > 60) {
+					delete particles[this.id];
 				}
+
 				// Adjust for gravity
 				this.vy += settings.gravity;
 				// work out the new image size now, saves on an extra calculation or two later
@@ -618,10 +624,10 @@ window.onload = function() {
 					settings.rotate = true;
 					settings.startingX = this.x;
 					settings.startingY = this.y;
-					settings.startingScale = 0.1;
+					settings.startingScale = this.scale;
 					settings.maxScale = 3.8;
-					settings.gravity = 0.2;
-					settings.growSpeed = 0.02;
+					settings.gravity = 0.28;
+					settings.growSpeed = 0.01;
 					particleIndex = 30;
 					for (var i = 0; i < 30; i++) {
 						settings.initvx = (Math.random() * 40)-17;
@@ -828,7 +834,7 @@ window.onload = function() {
 				if (this.y+(this.newheight / 2) > canvas.height*1.02 && this.life > 60) {
 					this.y = (canvas.height*1.02)-(this.newheight / 2);
 					this.vy *= -this.bounceFactor;
-					this.vx *= 0.8;
+					this.vx *= 0.9;
 					this.grow = false;
 				}
 				// Adjust for gravity
@@ -945,7 +951,7 @@ window.onload = function() {
 			numPart ++;
 		}
 		
-		// When the number of particles counted above hits, zero, we either face the canvas out or just stop the loop
+		// When the number of particles counted above hits, zero, we either fade the canvas out or just stop the loop
 		if (numPart == 0 && settings.noClear && settings.hasStarted) {
 			console.log('turn off');
 			settings.noClear = false;
@@ -977,7 +983,7 @@ window.onload = function() {
 			numPart ++;
 		}
 		
-		// When the number of particles counted above hits, zero, we either face the canvas out or just stop the loop
+		// When the number of particles counted above hits, zero, we either fade the canvas out or just stop the loop
 		if (numPart == 0) {
 			console.log('bye');
 			canvas.width = canvas.width;
